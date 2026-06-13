@@ -3,7 +3,37 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.12.35527.113 d17.12
 MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.API", "FlowDesk.API\FlowDesk.API.csproj", "{EFFB34B1-1AD5-457B-8C8B-E6E46A71AF74}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.Core", "FlowDesk.Core\FlowDesk.Core.csproj", "{82F1D98B-EA11-445F-9D2D-3FEBFF1F745E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.Infrastructure", "FlowDesk.Infrastructure\FlowDesk.Infrastructure.csproj", "{1F64A04F-BBB3-4BBF-A6F3-FAC910BBDA07}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FlowDesk.Test", "FlowDesk.Test\FlowDesk.Test.csproj", "{82848367-154C-4220-B680-6B73303D168D}"
+EndProject
 Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EFFB34B1-1AD5-457B-8C8B-E6E46A71AF74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EFFB34B1-1AD5-457B-8C8B-E6E46A71AF74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EFFB34B1-1AD5-457B-8C8B-E6E46A71AF74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EFFB34B1-1AD5-457B-8C8B-E6E46A71AF74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82F1D98B-EA11-445F-9D2D-3FEBFF1F745E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82F1D98B-EA11-445F-9D2D-3FEBFF1F745E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82F1D98B-EA11-445F-9D2D-3FEBFF1F745E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82F1D98B-EA11-445F-9D2D-3FEBFF1F745E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1F64A04F-BBB3-4BBF-A6F3-FAC910BBDA07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1F64A04F-BBB3-4BBF-A6F3-FAC910BBDA07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1F64A04F-BBB3-4BBF-A6F3-FAC910BBDA07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1F64A04F-BBB3-4BBF-A6F3-FAC910BBDA07}.Release|Any CPU.Build.0 = Release|Any CPU
+		{82848367-154C-4220-B680-6B73303D168D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{82848367-154C-4220-B680-6B73303D168D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{82848367-154C-4220-B680-6B73303D168D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{82848367-154C-4220-B680-6B73303D168D}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

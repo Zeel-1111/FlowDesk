@@ -1,12 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace FlowDesk.Core.Interfaces;
 
-namespace FlowDesk.Core.Interfaces
+using FlowDesk.Core.Entities;
+
+public interface ITaskRepository
 {
-    internal interface ITaskRepository
-    {
-    }
+    Task<IEnumerable<TaskItem>> GetAllAsync();
+    Task<TaskItem?> GetByIdAsync(Guid id);
+    Task<TaskItem> CreateAsync(TaskItem task);
+    Task<TaskItem?> UpdateAsync(Guid id, TaskItem task);
+    Task<bool> DeleteAsync(Guid id);
 }

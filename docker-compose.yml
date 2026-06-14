@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: flowdesk_db
+    environment:
+      POSTGRES_DB: FieldServiceDB
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: Karan@101
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

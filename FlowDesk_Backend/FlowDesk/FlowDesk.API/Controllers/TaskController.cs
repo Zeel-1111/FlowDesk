@@ -1,35 +1,39 @@
 ﻿using FlowDesk.Core.DTOs;
 using FlowDesk.Core.Entities;
 using FlowDesk.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FlowDesk.API.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
-    public class TaskController : ControllerBase
+    public class TasksController : ControllerBase
     {
-
         private readonly ITaskRepository _taskRepository;
 
-        public TaskController(ITaskRepository taskRepository)
+        public TasksController(ITaskRepository taskRepository)
         {
             _taskRepository = taskRepository;
         }
 
+        private Guid GetUserId()
+            => Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var tasks = await _taskRepository.GetAllAsync();
-            var response = tasks.Select(t => MapToResponse(t));
-            return Ok(response);
+            var tasks = await _taskRepository.GetAllAsync(GetUserId());
+            return Ok(tasks.Select(MapToResponse));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var task = await _taskRepository.GetByIdAsync(id);
+            var task = await _taskRepository.GetByIdAsync(id, GetUserId());
             if (task is null) return NotFound();
             return Ok(MapToResponse(task));
         }
@@ -42,7 +46,8 @@ namespace FlowDesk.API.Controllers
                 Title = dto.Title,
                 Description = dto.Description,
                 Priority = dto.Priority,
-                DueDate = dto.DueDate
+                DueDate = dto.DueDate,
+                UserId = GetUserId()
             };
 
             var created = await _taskRepository.CreateAsync(task);
@@ -60,7 +65,7 @@ namespace FlowDesk.API.Controllers
                 DueDate = dto.DueDate
             };
 
-            var updated = await _taskRepository.UpdateAsync(id, task);
+            var updated = await _taskRepository.UpdateAsync(id, GetUserId(), task);
             if (updated is null) return NotFound();
             return Ok(MapToResponse(updated));
         }
@@ -68,7 +73,7 @@ namespace FlowDesk.API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var deleted = await _taskRepository.DeleteAsync(id);
+            var deleted = await _taskRepository.DeleteAsync(id, GetUserId());
             if (!deleted) return NotFound();
             return NoContent();
         }
@@ -84,6 +89,5 @@ namespace FlowDesk.API.Controllers
             CreatedAt = task.CreatedAt,
             UpdatedAt = task.UpdatedAt
         };
-
     }
 }

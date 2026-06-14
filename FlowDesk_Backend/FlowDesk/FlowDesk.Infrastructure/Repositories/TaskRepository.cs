@@ -19,11 +19,14 @@ namespace FlowDesk.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<TaskItem>> GetAllAsync()
-            => await _context.Tasks.OrderByDescending(t => t.CreatedAt).ToListAsync();
+        public async Task<IEnumerable<TaskItem>> GetAllAsync(Guid userId)
+            => await _context.Tasks
+                        .Where(t => t.UserId == userId)
+                        .OrderByDescending(t => t.CreatedAt)
+                        .ToListAsync();
 
-        public async Task<TaskItem?> GetByIdAsync(Guid id)
-            => await _context.Tasks.FindAsync(id);
+        public async Task<TaskItem?> GetByIdAsync(Guid id, Guid userId)
+            => await _context.Tasks.FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
         public async Task<TaskItem> CreateAsync(TaskItem task)
         {
@@ -32,9 +35,10 @@ namespace FlowDesk.Infrastructure.Repositories
             return task;
         }
 
-        public async Task<TaskItem?> UpdateAsync(Guid id, TaskItem updated)
+        public async Task<TaskItem?> UpdateAsync(Guid id, Guid userId, TaskItem updated)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (task is null) return null;
 
             task.Title = updated.Title;
@@ -48,9 +52,10 @@ namespace FlowDesk.Infrastructure.Repositories
             return task;
         }
 
-        public async Task<bool> DeleteAsync(Guid id)
+        public async Task<bool> DeleteAsync(Guid id, Guid userId)
         {
-            var task = await _context.Tasks.FindAsync(id);
+            var task = await _context.Tasks
+            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (task is null) return false;
 
             _context.Tasks.Remove(task);

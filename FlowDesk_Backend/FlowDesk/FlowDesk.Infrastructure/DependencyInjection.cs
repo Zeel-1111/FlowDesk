@@ -3,6 +3,7 @@
 using FlowDesk.Core.Interfaces;
 using FlowDesk.Infrastructure.Data;
 using FlowDesk.Infrastructure.Repositories;
+using FlowDesk.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,6 +18,7 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         services.AddScoped<ITaskRepository, TaskRepository>();
+        services.AddScoped<IAuthService, AuthService>();
 
         return services;
     }

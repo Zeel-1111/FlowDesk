@@ -30,20 +30,27 @@ namespace FlowDesk.Infrastructure.Repositories
 
         public async Task<TaskItem> CreateAsync(TaskItem task)
         {
-            _context.Tasks.Add(task);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.Tasks.AddAsync(task);
+                await _context.SaveChangesAsync();
+            }
+            catch(Exception ex)
+            {
+                throw ex;
+            }
             return task;
         }
 
         public async Task<TaskItem?> UpdateAsync(Guid id, Guid userId, TaskItem updated)
         {
             var task = await _context.Tasks
-            .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
             if (task is null) return null;
 
             task.Title = updated.Title;
             task.Description = updated.Description;
-            task.IsCompleted = updated.IsCompleted;
+            task.Status = updated.Status;
             task.Priority = updated.Priority;
             task.DueDate = updated.DueDate;
             task.UpdatedAt = DateTime.UtcNow;

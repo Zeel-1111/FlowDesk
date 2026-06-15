@@ -1,10 +1,12 @@
-﻿using FlowDesk.Core.DTOs;
+using FlowDesk.API.Services;
+using FlowDesk.Core.DTOs;
 using FlowDesk.Core.Entities;
 using FlowDesk.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TaskStatus = FlowDesk.Core.Entities.Enums.TaskStatus;
 
 namespace FlowDesk.API.Controllers
 {
@@ -14,10 +16,12 @@ namespace FlowDesk.API.Controllers
     public class TasksController : ControllerBase
     {
         private readonly ITaskRepository _taskRepository;
+        private readonly ITaskNotifier _taskNotifier;
 
-        public TasksController(ITaskRepository taskRepository)
+        public TasksController(ITaskRepository taskRepository, ITaskNotifier taskNotifier)
         {
             _taskRepository = taskRepository;
+            _taskNotifier = taskNotifier;
         }
 
         private Guid GetUserId()
@@ -45,13 +49,18 @@ namespace FlowDesk.API.Controllers
             {
                 Title = dto.Title,
                 Description = dto.Description,
+                Status = dto.Status,
                 Priority = dto.Priority,
-                DueDate = dto.DueDate,
+                DueDate = dto.DueDate?.ToUniversalTime(),
                 UserId = GetUserId()
             };
 
             var created = await _taskRepository.CreateAsync(task);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToResponse(created));
+            var response = MapToResponse(created);
+
+            await _taskNotifier.TaskCreated(GetUserId(), response);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, response);
         }
 
         [HttpPut("{id}")]
@@ -61,12 +70,17 @@ namespace FlowDesk.API.Controllers
             {
                 Title = dto.Title,
                 Description = dto.Description,
+                Status = dto.Status,
                 Priority = dto.Priority,
-                DueDate = dto.DueDate
+                DueDate = dto.DueDate?.ToUniversalTime()
             };
 
             var updated = await _taskRepository.UpdateAsync(id, GetUserId(), task);
             if (updated is null) return NotFound();
+
+            var response = MapToResponse(updated);
+            await _taskNotifier.TaskUpdated(GetUserId(), response);
+
             return Ok(MapToResponse(updated));
         }
 
@@ -75,6 +89,9 @@ namespace FlowDesk.API.Controllers
         {
             var deleted = await _taskRepository.DeleteAsync(id, GetUserId());
             if (!deleted) return NotFound();
+
+            await _taskNotifier.TaskDeleted(GetUserId(), id);
+
             return NoContent();
         }
 
@@ -83,7 +100,7 @@ namespace FlowDesk.API.Controllers
             Id = task.Id,
             Title = task.Title,
             Description = task.Description,
-            IsCompleted = task.IsCompleted,
+            Status = task.Status,
             Priority = task.Priority,
             DueDate = task.DueDate,
             CreatedAt = task.CreatedAt,

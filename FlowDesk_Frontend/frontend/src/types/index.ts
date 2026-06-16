@@ -55,3 +55,20 @@ export interface RegisterDto {
   email: string;
   password: string;
 }
+
+export const NotificationType = {
+  DueIn24Hours: 1,
+  DueIn1Hour: 2,
+} as const;
+
+export type NotificationType = (typeof NotificationType)[keyof typeof NotificationType];
+
+export interface NotificationDto {
+  id: string;
+  taskId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  isRead: boolean;
+  createdAt: string;
+}

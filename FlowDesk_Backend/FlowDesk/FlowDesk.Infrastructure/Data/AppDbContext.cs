@@ -17,6 +17,8 @@ namespace FlowDesk.Infrastructure.Data
         public DbSet<TaskItem> Tasks { get; set; }
         public DbSet<User> Users { get; set; }
 
+        public DbSet<Notification> Notifications { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<TaskItem>(entity =>
@@ -39,6 +41,24 @@ namespace FlowDesk.Infrastructure.Data
                 entity.Property(u => u.Email).IsRequired().HasMaxLength(200);
                 entity.HasIndex(u => u.Email).IsUnique();
                 entity.Property(u => u.Name).IsRequired().HasMaxLength(100);
+            });
+
+            modelBuilder.Entity<Notification>(entity =>
+            {
+                entity.HasKey(n => n.Id);
+                entity.Property(n => n.Title).IsRequired().HasMaxLength(200);
+                entity.Property(n => n.Message).IsRequired().HasMaxLength(500);
+                entity.Property(n => n.Type).HasConversion<int>();
+
+                entity.HasOne(n => n.User)
+                      .WithMany()
+                      .HasForeignKey(n => n.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(n => n.Task)
+                      .WithMany()
+                      .HasForeignKey(n => n.TaskId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

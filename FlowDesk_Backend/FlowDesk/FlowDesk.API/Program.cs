@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-    var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -91,6 +91,8 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddSignalR();
 builder.Services.AddScoped<ITaskNotifier, TaskNotifier>();
+builder.Services.AddScoped<INotificationNotifier, NotificationNotifier>();
+
 
 builder.Services.AddCors(options =>
 {

@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { taskService } from '../api/tasks';
-import { type Task, type CreateTaskDto, TaskStatus } from '../types';
+import { notificationService } from '../api/notifications';
+import { useTaskHub } from '../hooks/useTaskHub';
+import { type Task, type CreateTaskDto, type NotificationDto, TaskStatus } from '../types';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
-import { useTaskHub } from '../hooks/useTaskHub';
-import { toast } from 'react-hot-toast';
+import NotificationBell from '../components/NotificationBell';
+
 const columns: { status: TaskStatus; label: string; color: string }[] = [
   { status: TaskStatus.Todo, label: 'To Do', color: 'bg-gray-100' },
   { status: TaskStatus.InProgress, label: 'In Progress', color: 'bg-blue-50' },
@@ -16,6 +18,7 @@ const columns: { status: TaskStatus; label: string; color: string }[] = [
 export default function Dashboard() {
   const { user, logout } = useAuth();
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
@@ -32,31 +35,41 @@ export default function Dashboard() {
     }
   };
 
+  const loadNotifications = async () => {
+    try {
+      const data = await notificationService.getUnread();
+      setNotifications(data);
+    } catch (err) {
+      console.error('Failed to load notifications', err);
+    }
+  };
+
   useEffect(() => {
     loadTasks();
+    loadNotifications();
   }, []);
 
   useTaskHub({
     onTaskCreated: (task) => {
-      toast.success(`New task created: ${task.title}`, { id: `create-${task.id}` });
       setTasks((prev) => {
-        if (prev.some((t) => t.id === task.id)) return prev; // avoid dup if same tab triggered it
+        if (prev.some((t) => t.id === task.id)) return prev;
         return [task, ...prev];
       });
     },
     onTaskUpdated: (task) => {
-      toast.success(`Task updated: ${task.title}`, { id: `update-${task.id}` });
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
     },
-    onTaskDeleted: (taskId : any) => {
-      toast.success(`Task deleted`, { id: `delete-${taskId}` });
+    onTaskDeleted: (taskId) => {
       setTasks((prev) => prev.filter((t) => t.id !== taskId));
     },
+    onNotificationReceived: (notification) => {
+      setNotifications((prev) => [notification, ...prev]);
+    },
   });
+
   const handleCreate = async (values: CreateTaskDto) => {
     await taskService.create(values);
     setShowForm(false);
-    loadTasks();
   };
 
   const handleUpdate = async (values: CreateTaskDto) => {
@@ -64,13 +77,11 @@ export default function Dashboard() {
     await taskService.update(editingTask.id, values);
     setEditingTask(undefined);
     setShowForm(false);
-    loadTasks();
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this task?')) return;
     await taskService.delete(id);
-    loadTasks();
   };
 
   const openEditForm = (task: Task) => {
@@ -90,6 +101,13 @@ export default function Dashboard() {
           <h1 className="text-xl font-bold">FlowDesk</h1>
           <div className="flex items-center gap-4">
             <span className="text-sm text-gray-600">Hi, {user?.name}</span>
+            <NotificationBell
+              notifications={notifications}
+              onMarkAsRead={(id) =>
+                setNotifications((prev) => prev.filter((n) => n.id !== id))
+              }
+              onMarkAllAsRead={() => setNotifications([])}
+            />
             <button onClick={logout} className="text-sm text-red-600 hover:underline">
               Logout
             </button>
@@ -133,7 +151,6 @@ export default function Dashboard() {
                       {colTasks.length}
                     </span>
                   </h3>
-
                   {colTasks.length === 0 ? (
                     <p className="text-xs text-gray-400">No tasks</p>
                   ) : (

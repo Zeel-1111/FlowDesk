@@ -5,6 +5,9 @@ using FlowDesk.Infrastructure;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Hangfire;
+using Hangfire.PostgreSql;
+using FlowDesk.Core.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -93,6 +96,12 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<ITaskNotifier, TaskNotifier>();
 builder.Services.AddScoped<INotificationNotifier, NotificationNotifier>();
 
+// Hangfire
+builder.Services.AddHangfire(config =>
+    config.UsePostgreSqlStorage(
+        builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddHangfireServer();
 
 builder.Services.AddCors(options =>
 {
@@ -111,10 +120,21 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
+
+
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<TaskHub>("hubs/tasks");
+// Hangfire dashboard (useful during dev)
+app.UseHangfireDashboard("/hangfire");
+
+// Schedule recurring job — every 15 minutes
+RecurringJob.AddOrUpdate<INotificationService>(
+    "check-due-notifications",
+    service => service.CheckAndSendDueNotificationsAsync(),
+    "*/15 * * * *"
+);
 app.Run();

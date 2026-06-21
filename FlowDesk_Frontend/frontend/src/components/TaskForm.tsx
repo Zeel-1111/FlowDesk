@@ -1,6 +1,6 @@
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
-import { type CreateTaskDto, Priority, TaskStatus,type Task } from '../types';
+import { type CreateTaskDto, Priority, TaskStatus, type Task, type AITaskSuggestion } from '../types';
 
 const validationSchema = Yup.object({
   title: Yup.string().required('Title is required').max(200),
@@ -12,31 +12,27 @@ const validationSchema = Yup.object({
 
 interface TaskFormProps {
   initialData?: Task;
+  aiSuggestion?: AITaskSuggestion;
   onSubmit: (values: CreateTaskDto) => Promise<void>;
   onCancel: () => void;
 }
 
-export default function TaskForm({ initialData, onSubmit, onCancel }: TaskFormProps) {
+export default function TaskForm({ initialData, aiSuggestion, onSubmit, onCancel }: TaskFormProps) {
   const initialValues: CreateTaskDto = {
-    title: initialData?.title || '',
-    description: initialData?.description || '',
-    status: initialData?.status ?? TaskStatus.Todo,
-    priority: initialData?.priority ?? Priority.Medium,
-    dueDate: initialData?.dueDate?.split('T')[0] || '',
+    title: initialData?.title || aiSuggestion?.title || '',
+    description: initialData?.description || aiSuggestion?.description || '',
+    status: initialData?.status ?? aiSuggestion?.status ?? TaskStatus.Todo,
+    priority: initialData?.priority ?? aiSuggestion?.priority ?? Priority.Medium,
+    dueDate: (initialData?.dueDate || aiSuggestion?.dueDate)?.split('T')[0] || '',
   };
 
   return (
     <Formik
       initialValues={initialValues}
       validationSchema={validationSchema}
+      enableReinitialize
       onSubmit={async (values, { setSubmitting }) => {
-        const payload = {
-          ...values,
-          status: Number(values.status) as TaskStatus,
-          priority: Number(values.priority) as Priority,
-          dueDate: values.dueDate === '' ? undefined : values.dueDate
-        };
-        await onSubmit(payload);
+        await onSubmit(values);
         setSubmitting(false);
       }}
     >

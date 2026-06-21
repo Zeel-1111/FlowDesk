@@ -72,3 +72,15 @@ export interface NotificationDto {
   isRead: boolean;
   createdAt: string;
 }
+
+export interface AITaskSuggestion {
+  title: string;
+  description?: string;
+  priority: Priority;
+  status: TaskStatus;
+  dueDate?: string;
+}
+
+export interface ParseTaskRequest {
+  input: string;
+}

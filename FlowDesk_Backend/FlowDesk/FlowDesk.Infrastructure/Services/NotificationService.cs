@@ -24,7 +24,7 @@ public class NotificationService : INotificationService
     {
         var now = DateTime.UtcNow;
         var inHour = now.AddHours(1);
-        var in24Hours = now.AddHours(24);
+        var in24Hours = now.AddHours(48);
 
         var tasks = await _context.Tasks.
             Include(t => t.User)
@@ -38,7 +38,7 @@ public class NotificationService : INotificationService
         {
             var due = task.DueDate!.Value;
 
-            if (due >= now && due <= inHour)
+            if (due >= now && (due <= inHour || due <= in24Hours))
             {
                 var alreadySent = await _notificationRepository
                     .ExistsAsync(task.Id, NotificationType.DueIn1Hour);
@@ -53,6 +53,7 @@ public class NotificationService : INotificationService
                         Title = "Task due very soon!",
                         Message = $"\"{task.Title}\" is due within the next hour.",
                         Type = NotificationType.DueIn1Hour,
+                        CreatedAt = DateTime.UtcNow,
                     });
 
                     await _notificationNotifier.SendNotificationAsync(task.UserId, MapToDto(notification));
@@ -72,6 +73,7 @@ public class NotificationService : INotificationService
                             Title = "Task due tomorrow",
                             Message = $"\"{task.Title}\" is due within the next 24 hours.",
                             Type = NotificationType.DueIn24Hours,
+                            CreatedAt = DateTime.UtcNow,
                         });
 
                         await _notificationNotifier.SendNotificationAsync(task.UserId, MapToDto(notification));

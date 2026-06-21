@@ -3,10 +3,11 @@ import { useAuth } from '../context/AuthContext';
 import { taskService } from '../api/tasks';
 import { notificationService } from '../api/notifications';
 import { useTaskHub } from '../hooks/useTaskHub';
-import { type Task, type CreateTaskDto, type NotificationDto, TaskStatus } from '../types';
+import { type Task, type CreateTaskDto, type NotificationDto, type AITaskSuggestion, TaskStatus } from '../types';
 import TaskCard from '../components/TaskCard';
 import TaskForm from '../components/TaskForm';
 import NotificationBell from '../components/NotificationBell';
+import AITaskInput from '../components/AITaskInput';
 
 const columns: { status: TaskStatus; label: string; color: string }[] = [
   { status: TaskStatus.Todo, label: 'To Do', color: 'bg-gray-100' },
@@ -21,7 +22,9 @@ export default function Dashboard() {
   const [notifications, setNotifications] = useState<NotificationDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
+  const [showAIInput, setShowAIInput] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | undefined>(undefined);
+  const [aiSuggestion, setAiSuggestion] = useState<AITaskSuggestion | undefined>(undefined);
 
   const loadTasks = async () => {
     setLoading(true);
@@ -51,10 +54,7 @@ export default function Dashboard() {
 
   useTaskHub({
     onTaskCreated: (task) => {
-      setTasks((prev) => {
-        if (prev.some((t) => t.id === task.id)) return prev;
-        return [task, ...prev];
-      });
+      setTasks((prev) => (prev.some((t) => t.id === task.id) ? prev : [task, ...prev]));
     },
     onTaskUpdated: (task) => {
       setTasks((prev) => prev.map((t) => (t.id === task.id ? task : t)));
@@ -70,6 +70,7 @@ export default function Dashboard() {
   const handleCreate = async (values: CreateTaskDto) => {
     await taskService.create(values);
     setShowForm(false);
+    setAiSuggestion(undefined);
   };
 
   const handleUpdate = async (values: CreateTaskDto) => {
@@ -86,12 +87,20 @@ export default function Dashboard() {
 
   const openEditForm = (task: Task) => {
     setEditingTask(task);
+    setAiSuggestion(undefined);
     setShowForm(true);
   };
 
   const closeForm = () => {
     setShowForm(false);
     setEditingTask(undefined);
+    setAiSuggestion(undefined);
+  };
+
+  const handleAISuggestion = (suggestion: AITaskSuggestion) => {
+    setAiSuggestion(suggestion);
+    setShowAIInput(false);
+    setShowForm(true);
   };
 
   return (
@@ -103,9 +112,7 @@ export default function Dashboard() {
             <span className="text-sm text-gray-600">Hi, {user?.name}</span>
             <NotificationBell
               notifications={notifications}
-              onMarkAsRead={(id) =>
-                setNotifications((prev) => prev.filter((n) => n.id !== id))
-              }
+              onMarkAsRead={(id) => setNotifications((prev) => prev.filter((n) => n.id !== id))}
               onMarkAllAsRead={() => setNotifications([])}
             />
             <button onClick={logout} className="text-sm text-red-600 hover:underline">
@@ -118,19 +125,45 @@ export default function Dashboard() {
       <main className="max-w-6xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">My Tasks</h2>
-          <button
-            onClick={() => setShowForm(true)}
-            className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
-          >
-            + New Task
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setShowAIInput(true);
+                setShowForm(false);
+              }}
+              className="bg-purple-600 text-white px-4 py-2 rounded text-sm hover:bg-purple-700"
+            >
+              ✨ AI Create
+            </button>
+            <button
+              onClick={() => {
+                setShowForm(true);
+                setShowAIInput(false);
+                setAiSuggestion(undefined);
+                setEditingTask(undefined);
+              }}
+              className="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700"
+            >
+              + New Task
+            </button>
+          </div>
         </div>
+
+        {showAIInput && (
+          <AITaskInput
+            onSuggestion={handleAISuggestion}
+            onCancel={() => setShowAIInput(false)}
+          />
+        )}
 
         {showForm && (
           <div className="bg-white rounded-lg shadow p-4 mb-4">
-            <h3 className="font-semibold mb-3">{editingTask ? 'Edit Task' : 'New Task'}</h3>
+            <h3 className="font-semibold mb-3">
+              {editingTask ? 'Edit Task' : aiSuggestion ? '✨ AI Suggested Task (review & save)' : 'New Task'}
+            </h3>
             <TaskForm
               initialData={editingTask}
+              aiSuggestion={aiSuggestion}
               onSubmit={editingTask ? handleUpdate : handleCreate}
               onCancel={closeForm}
             />
@@ -155,12 +188,7 @@ export default function Dashboard() {
                     <p className="text-xs text-gray-400">No tasks</p>
                   ) : (
                     colTasks.map((task) => (
-                      <TaskCard
-                        key={task.id}
-                        task={task}
-                        onEdit={openEditForm}
-                        onDelete={handleDelete}
-                      />
+                      <TaskCard key={task.id} task={task} onEdit={openEditForm} onDelete={handleDelete} />
                     ))
                   )}
                 </div>

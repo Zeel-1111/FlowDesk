@@ -99,7 +99,12 @@ builder.Services.AddScoped<INotificationNotifier, NotificationNotifier>();
 // Hangfire
 builder.Services.AddHangfire(config =>
     config.UsePostgreSqlStorage(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        new Hangfire.PostgreSql.PostgreSqlStorageOptions
+        {
+            PrepareSchemaIfNecessary = true,
+            DistributedLockTimeout = TimeSpan.FromSeconds(30),
+        }));
 
 builder.Services.AddHangfireServer();
 
@@ -135,6 +140,6 @@ app.UseHangfireDashboard("/hangfire");
 RecurringJob.AddOrUpdate<INotificationService>(
     "check-due-notifications",
     service => service.CheckAndSendDueNotificationsAsync(),
-    "*/15 * * * *"
+    "*/1 * * * *"
 );
 app.Run();

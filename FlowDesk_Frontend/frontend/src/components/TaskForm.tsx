@@ -32,7 +32,13 @@ export default function TaskForm({ initialData, aiSuggestion, onSubmit, onCancel
       validationSchema={validationSchema}
       enableReinitialize
       onSubmit={async (values, { setSubmitting }) => {
-        await onSubmit(values);
+        const payload: CreateTaskDto = {
+          ...values,
+          status: Number(values.status) as TaskStatus,
+          priority: Number(values.priority) as Priority,
+          dueDate: values.dueDate ? new Date(values.dueDate).toISOString() : undefined,
+        };
+        await onSubmit(payload);
         setSubmitting(false);
       }}
     >

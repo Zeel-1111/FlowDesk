@@ -8,6 +8,7 @@ using System.Text;
 using Hangfire;
 using Hangfire.PostgreSql;
 using FlowDesk.Core.Interfaces;
+using AspNetCoreRateLimit;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -117,6 +118,36 @@ builder.Services.AddCors(options =>
               .AllowCredentials());
 });
 
+// Rate limiting
+builder.Services.AddMemoryCache();
+builder.Services.Configure<IpRateLimitOptions>(options =>
+{
+    options.EnableEndpointRateLimiting = true;
+    options.StackBlockedRequests = false;
+    options.HttpStatusCode = 429;
+    options.RealIpHeader = "X-Real-IP";
+    options.GeneralRules = new List<RateLimitRule>
+    {
+        new RateLimitRule
+        {
+            Endpoint = "*",
+            Period = "1m",
+            Limit = 60,
+        },
+        new RateLimitRule
+        {
+            Endpoint = "post:/api/AI/*",
+            Period = "1m",
+            Limit = 10,   // stricter limit for AI endpoints (they cost money)
+        }
+    };
+});
+builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
+builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
+builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
+builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
+builder.Services.AddInMemoryRateLimiting();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
@@ -126,7 +157,7 @@ if (app.Environment.IsDevelopment())
 }
 
 
-
+app.UseIpRateLimiting();
 app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthentication();

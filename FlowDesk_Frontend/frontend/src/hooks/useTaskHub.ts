@@ -41,7 +41,14 @@ export function useTaskHub({
 
     connection.start()
       .then(() => console.log('✅ SignalR connected:', connection.state))
-      .catch((err) => console.error('SignalR connection error:', err));
+      .catch((err) => {
+        if (err.message && err.message.includes('stopped during negotiation')) {
+          // This is a harmless error caused by React StrictMode unmounting the component
+          // while the connection is still starting up.
+          return;
+        }
+        console.error('SignalR connection error:', err);
+      });
 
     return () => {
       connection.stop();

@@ -5,13 +5,23 @@ services:
     image: postgres:16
     container_name: flowdesk_db
     environment:
-      POSTGRES_DB: FieldServiceDB
+      POSTGRES_DB: FlowDeskDB
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: Karan@101
+      POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+  redis:
+    image: redis:7-alpine
+    container_name: flowdesk_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+
 volumes:
   postgres_data:
+  redis_data:

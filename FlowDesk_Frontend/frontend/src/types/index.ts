@@ -84,3 +84,9 @@ export interface AITaskSuggestion {
 export interface ParseTaskRequest {
   input: string;
 }
+
+export interface TaskFilters {
+  search: string;
+  priority: Priority | 0;
+  status: TaskStatus | 0;
+}

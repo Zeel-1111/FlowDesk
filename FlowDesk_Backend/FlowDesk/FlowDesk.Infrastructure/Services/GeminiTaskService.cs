@@ -63,6 +63,8 @@ public class GeminiTaskService : IAITaskService
         var response = await _httpClient.PostAsync(url, content);
         response.EnsureSuccessStatusCode();
 
+        Console.WriteLine(response);
+
         var responseBody = await response.Content.ReadAsStringAsync();
         using var doc = JsonDocument.Parse(responseBody);
 

@@ -1,0 +1,41 @@
+services:
+  - type: web
+    name: flowdesk-api
+    runtime: docker
+    dockerfilePath: ./FlowDesk_Backend/FlowDesk/Dockerfile
+    dockerContext: ./FlowDesk_Backend/FlowDesk
+    envVars:
+      - key: ConnectionStrings__DefaultConnection
+        fromDatabase:
+          name: flowdesk-db
+          property: connectionString
+      - key: ConnectionStrings__Redis
+        sync: false
+      - key: Jwt__Key
+        sync: false
+      - key: Jwt__Issuer
+        value: FlowDeskAPI
+      - key: Jwt__Audience
+        value: FlowDeskClient
+      - key: App__FrontendUrl
+        sync: false
+      - key: Gemini__ApiKey
+        sync: false
+      - key: Email__Host
+        value: smtp.gmail.com
+      - key: Email__Port
+        value: "587"
+      - key: Email__Username
+        sync: false
+      - key: Email__Password
+        sync: false
+      - key: Email__FromName
+        value: FlowDesk
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+
+databases:
+  - name: flowdesk-db
+    databaseName: flowdesk
+    user: flowdesk
+    plan: free

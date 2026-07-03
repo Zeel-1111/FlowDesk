@@ -148,7 +148,20 @@ builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrateg
 builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
 builder.Services.AddInMemoryRateLimiting();
 
+// At the very top after var builder = WebApplication.CreateBuilder(args);
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080);
+});
+
 var app = builder.Build();
+
+// Auto-run migrations on startup
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
 
 if (app.Environment.IsDevelopment())
 {
@@ -167,7 +180,7 @@ app.MapHub<TaskHub>("hubs/tasks");
 // Hangfire dashboard (useful during dev)
 app.UseHangfireDashboard("/hangfire");
 
-// Schedule recurring job — every 15 minutes
+// Schedule recurring job ï¿½ every 15 minutes
 RecurringJob.AddOrUpdate<INotificationService>(
     "check-due-notifications",
     service => service.CheckAndSendDueNotificationsAsync(),

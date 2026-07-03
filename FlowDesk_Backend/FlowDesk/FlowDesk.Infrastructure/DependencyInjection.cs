@@ -19,12 +19,17 @@ public static class DependencyInjection
             options.UseNpgsql(configuration.GetConnectionString("DefaultConnection")));
 
         // Redis
+        //var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";
+        //var options = ConfigurationOptions.Parse(redisConnection);
+        //options.AbortOnConnectFail = false;
+
         var redisConnection = configuration.GetConnectionString("Redis") ?? "localhost:6379";
-        var options = ConfigurationOptions.Parse(redisConnection);
-        options.AbortOnConnectFail = false;
-        
+        var configOptions = ConfigurationOptions.Parse(redisConnection);
+        configOptions.AbortOnConnectFail = false; // don't crash if Redis is down
+        configOptions.Ssl = redisConnection.StartsWith("rediss://");
+
         services.AddSingleton<IConnectionMultiplexer>(
-            ConnectionMultiplexer.Connect(options));
+            ConnectionMultiplexer.Connect(configOptions));
         services.AddSingleton<ICacheService, RedisCacheService>();
 
         services.AddScoped<ITaskRepository, TaskRepository>();

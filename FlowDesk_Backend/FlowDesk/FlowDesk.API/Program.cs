@@ -167,12 +167,11 @@ using (var scope = app.Services.CreateScope())
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
     app.UseHttpsRedirection();
 }
 
-
+app.UseSwagger();
+app.UseSwaggerUI();
 app.UseIpRateLimiting();
 app.UseCors("AllowFrontend");
 app.UseAuthentication();

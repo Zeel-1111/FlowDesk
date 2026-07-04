@@ -23,7 +23,7 @@ export function useTaskHub({
     if (connectionRef.current) return;
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl('https://localhost:7219/hubs/tasks', {
+      .withUrl(`${import.meta.env.VITE_API_URL?.replace('/api', '')}/hubs/tasks`, {
         accessTokenFactory: () => token,
       })
       .withAutomaticReconnect()

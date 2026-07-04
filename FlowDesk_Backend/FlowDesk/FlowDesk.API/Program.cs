@@ -9,6 +9,8 @@ using Hangfire;
 using Hangfire.PostgreSql;
 using FlowDesk.Core.Interfaces;
 using AspNetCoreRateLimit;
+using FlowDesk.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -116,7 +116,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend", policy =>
         policy.WithOrigins(
             "http://localhost:5173",
-            "https://flow-desk-zaov-85k4uterl-zeel3.vercel.app/" // ← your actual Vercel URL
+            "https://flow-desk-zaov.vercel.app",
+            "https://flow-desk-zaov-e5j13doh2-zeel3.vercel.app"
         )
         .AllowAnyHeader()
         .AllowAnyMethod()

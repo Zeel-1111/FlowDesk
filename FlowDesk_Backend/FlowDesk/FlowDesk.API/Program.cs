@@ -114,10 +114,13 @@ builder.Services.AddHangfireServer();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
-        policy.WithOrigins("http://localhost:5173")
-              .AllowAnyHeader()
-              .AllowAnyMethod()
-              .AllowCredentials());
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "https://flow-desk-zaov-85k4uterl-zeel3.vercel.app/" // ← your actual Vercel URL
+        )
+        .AllowAnyHeader()
+        .AllowAnyMethod()
+        .AllowCredentials());
 });
 
 // Rate limiting

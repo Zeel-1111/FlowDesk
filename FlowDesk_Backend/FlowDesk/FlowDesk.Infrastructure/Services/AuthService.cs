@@ -129,16 +129,19 @@ public class AuthService : IAuthService
     private static string GenerateOtp()
         => Random.Shared.Next(100000, 999999).ToString();
 
-    private async Task SendOtpSafeAsync(string email, string name, string otp)
+    private async Task SendOtpSafeAsync(string email, string name, string otp, bool isPasswordReset = false)
     {
         try
         {
-            await _emailService.SendOtpEmailAsync(email, name, otp);
-            _logger.LogInformation("OTP email sent to {Email}", email);
+            if (isPasswordReset)
+                await _emailService.SendPasswordResetOtpEmailAsync(email, name, otp);
+            else
+                await _emailService.SendOtpEmailAsync(email, name, otp);
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Failed to send OTP email to {Email}. OTP: {Otp} — use this to verify manually.", email, otp);
+            Console.WriteLine($"[AuthService] warn: Failed to send email to {email}. OTP: {otp} - use this to verify manually.");
+            Console.WriteLine(ex.Message);
         }
     }
 
